@@ -146,7 +146,7 @@ void response_write_cb(struct bufferevent *bev, void *ctx) {
 
 
 //send a frame
-inline int32_t send_a_frame(ws_conn_t *conn, const frame_buffer_t *fb) {
+int32_t send_a_frame(ws_conn_t *conn, const frame_buffer_t *fb) {
 	return bufferevent_write(conn->bev, fb->data, fb->len);
 }
 
@@ -180,9 +180,9 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 			bufferevent_read(bev, tmp, conn->ntoread);
 			//parse header
 			if (parse_frame_header(tmp, conn->frame) == 0) {
-				LOG("FIN         = %lu", conn->frame->fin);
-				LOG("OPCODE      = %lu", conn->frame->opcode);
-				LOG("MASK        = %lu", conn->frame->mask);
+				LOG("FIN         = %d", conn->frame->fin);
+				LOG("OPCODE      = %d", conn->frame->opcode);
+				LOG("MASK        = %d", conn->frame->mask);
 				LOG("PAYLOAD_LEN = %lu", conn->frame->payload_len);
 				//payload_len is [0, 127]
 				if (conn->frame->payload_len <= 125) {
@@ -217,7 +217,7 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 				LOG("PAYLOAD_LEN = %lu", conn->frame->payload_len);
 			} else if (conn->frame->payload_len == 127) {
 				conn->frame->payload_len = myntohll(*(uint64_t*)tmp);
-				LOG("PAYLOAD_LEN = %llu", conn->frame->payload_len);
+				LOG("PAYLOAD_LEN = %lu", conn->frame->payload_len);
 			}
 			conn->step = THREE;
 			conn->ntoread = 4;

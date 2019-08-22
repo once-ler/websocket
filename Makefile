@@ -1,4 +1,4 @@
-ver = debug
+ver = release
 
 
 ALLBIN = chat_release chat_debug
@@ -20,6 +20,7 @@ else
 ALL: chat_release
 CXXFLAGS = -c -O3
 OBJS = demo.ro websocket.ro base64.ro connection.ro user.ro frame.ro
+LWS_LIB_OBJS = $(OBJDIR)/base64.ro $(OBJDIR)/websocket.ro $(OBJDIR)/frame.ro $(OBJDIR)/connection.ro
 BIN = chat_release
 endif
 
@@ -54,4 +55,4 @@ tmp: $(OBJS)
 	cp -f $(LWS_INCLUDE) libwebsocket/include
 	ar cr $(LWS_LIB) $(LWS_LIB_OBJS)
 	mv -f $(LWS_LIB) libwebsocket/lib
-	\cp -r libwebsocket/* ../bin2http_websocket/libwebsocket
+	# \cp -r libwebsocket/* ../bin2http_websocket/libwebsocket

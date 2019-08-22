@@ -25,7 +25,7 @@ void user_disconnect(user_t *user) {
 		}
 		user_destroy(user);
 	}
-	LOG("now, %d users connecting", user_vec.size());
+	LOG("now, %lu users connecting", user_vec.size());
 }
 
 

@@ -135,8 +135,8 @@ void response_write_cb(struct bufferevent *bev, void *ctx) {
 			void *cbarg = conn->handshake_cb_unit.cbarg;
 			cb(cbarg);
 		}
-		LOG("%s", conn->ws_req_str.c_str());
-		LOG("%s", conn->ws_resp_str.c_str());
+		// LOG("%s", conn->ws_req_str.c_str());
+		// LOG("%s", conn->ws_resp_str.c_str());
 
 		frame_recv_loop(conn); //frame receive loop
 	} else {
@@ -175,15 +175,19 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 	switch (conn->step) {
 	case ONE:
 		{
+			#ifdef debug 
 			LOG("---- STEP 1 ----");
+			#endif
 			char tmp[conn->ntoread];
 			bufferevent_read(bev, tmp, conn->ntoread);
 			//parse header
 			if (parse_frame_header(tmp, conn->frame) == 0) {
+				#ifdef debug
 				LOG("FIN         = %d", conn->frame->fin);
 				LOG("OPCODE      = %d", conn->frame->opcode);
 				LOG("MASK        = %d", conn->frame->mask);
 				LOG("PAYLOAD_LEN = %lu", conn->frame->payload_len);
+				#endif
 				//payload_len is [0, 127]
 				if (conn->frame->payload_len <= 125) {
 					conn->step = THREE;
@@ -209,15 +213,21 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 
 	case TWO:
 		{
+			#ifdef debug
 			LOG("---- STEP 2 ----");
+			#endif
 			char tmp[conn->ntoread];
 			bufferevent_read(bev, tmp, conn->ntoread);
 			if (conn->frame->payload_len == 126) {
 				conn->frame->payload_len = ntohs(*(uint16_t*)tmp);
+				#ifdef debug
 				LOG("PAYLOAD_LEN = %lu", conn->frame->payload_len);
+				#endif
 			} else if (conn->frame->payload_len == 127) {
 				conn->frame->payload_len = myntohll(*(uint64_t*)tmp);
+				#ifdef debug
 				LOG("PAYLOAD_LEN = %lu", conn->frame->payload_len);
+				#endif
 			}
 			conn->step = THREE;
 			conn->ntoread = 4;
@@ -227,7 +237,9 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 
 	case THREE:
 		{
+			#ifdef debug
 			LOG("---- STEP 3 ----");
+			#endif
 			char tmp[conn->ntoread];
 			bufferevent_read(bev, tmp, conn->ntoread);
 			memcpy(conn->frame->masking_key, tmp, conn->ntoread);
@@ -244,7 +256,9 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 					//0x8 denotes a connection close
 					frame_buffer_t *fb = frame_buffer_new(1, 8, 0, NULL);
 					send_a_frame(conn, fb);
+					#ifdef debug
 					LOG("send a close frame");
+					#endif
 					frame_buffer_free(fb);
 
 #if 0
@@ -279,7 +293,9 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 
 	case FOUR:
 		{
+			#ifdef debug
 			LOG("---- STEP 4 ----");
+			#endif
 			if (conn->frame->payload_len > 0) {
 				if (conn->frame->payload_data) {
 					delete[] conn->frame->payload_data;
@@ -296,7 +312,9 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 				//0x8 denotes a connection close
 				frame_buffer_t *fb = frame_buffer_new(1, 8, 0, NULL);
 				send_a_frame(conn, fb);
+				#ifdef debug
 				LOG("send a close frame");
+				#endif
 				frame_buffer_free(fb);
 
 #if 0
@@ -336,8 +354,10 @@ void frame_read_cb(struct bufferevent *bev, void *ctx) {
 		}
 
 	default:
+		#ifdef debug
 		LOG("---- STEP UNKNOWN ----");
 		LOG("exit");
+		#endif
 		exit(-1);
 		break;
 	}
